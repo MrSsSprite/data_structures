@@ -3,6 +3,10 @@
 #include <string.h>
 
 
+//TEMP
+#include <stdio.h>
+
+
 /*----------------------------- Private Structs ------------------------------*/
 struct vector
 {
@@ -74,13 +78,18 @@ int vec_insert
  (struct vector *self, void *dst, const void *restrict src, size_t cnt)
 {
    size_t tail_sz = (char*)self->cav - (char*)dst,
-          count_bytes = cnt * self->elem_sz;
-   if ((char*)self->end - (char*)self->cav < cnt * self->elem_sz &&
-       vec_grow(self, vec_len(self) + cnt))
-      return 1;
+          cnt_bytes = cnt * self->elem_sz;
+   if ((size_t)((char*)self->end - (char*)self->cav) < cnt * self->elem_sz)
+    {
+      size_t dst_offset = (char*)dst - (char*)self->beg;
+      if (vec_grow(self, vec_len(self) + cnt))
+         return 1;
+      dst = (char*)self->beg + dst_offset;
+    }
 
-   memmove((char*)dst + count_bytes, dst, tail_sz);
-   memcpy(dst, src, count_bytes);
+   memmove((char*)dst + cnt_bytes, dst, tail_sz);
+   memcpy(dst, src, cnt_bytes);
+   self->cav = (char*)self->cav + cnt_bytes;
 
    return 0;
 }
@@ -88,11 +97,13 @@ int vec_insert
 
 int vec_erase(struct vector *self, void *pos, size_t cnt)
 {
-   void *keep = (char*)pos + cnt * self->elem_sz;
+   size_t cnt_bytes = cnt * self->elem_sz;
+   void *keep = (char*)pos + cnt_bytes;
 
    memmove(pos, keep, (char*)self->cav - (char*)keep);
    if (vec_can_shrink(self) && vec_shrink(self))
       return -1;
+   self->cav = (char*)self->cav - cnt_bytes;
 
    return 0;
 }
@@ -119,12 +130,18 @@ _Bool vec_is_empty(struct vector *self)
 static inline
 int vec_realloc(struct vector *self, size_t new_cap)
 {
-   size_t cap_bytes = new_cap * self->elem_sz;
-   void *new_beg = realloc(self->beg, cap_bytes);
+   void *new_beg;
 
+   if (new_cap == 0)
+    {
+      free(self->beg);
+      self->beg = self->cav = self->end = NULL;
+    }
+
+   new_beg = realloc(self->beg, new_cap);
    if (new_beg == NULL) return 1;
    self->cav = (char*)new_beg + _vec_len_bytes(self);
-   self->end = (char*)new_beg + cap_bytes;
+   self->end = (char*)new_beg + new_cap;
    self->beg = new_beg;
 
    return 0;
@@ -151,7 +168,7 @@ int vec_shrink(struct vector *self)
    size_t min_bytes = _vec_len_bytes(self),
           actual_bytes = _vec_cap_bytes(self);
 
-   while (actual_bytes / 4 >= min_bytes)
+   while (actual_bytes / 4 >= min_bytes && actual_bytes)
       actual_bytes /= 2;
 
    return vec_realloc(self, actual_bytes);
