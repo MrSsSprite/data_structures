@@ -1,6 +1,7 @@
 #include "../vector.h"
 #include <stdlib.h>
 #include <string.h>
+#include "../../compat/bit_ops.h"
 
 
 //TEMP
@@ -47,6 +48,15 @@ void vec_free(struct vector *self)
 {
    free(self->beg);
    free(self);
+}
+
+
+int vec_resize(struct vector *self, size_t size)
+{
+   size_t cap = vec_cap(self);
+
+   if (cap < size) vec_grow(self, size);
+   //TODO
 }
 
 
@@ -127,6 +137,25 @@ _Bool vec_is_empty(struct vector *self)
 
 
 /*---------------------------- Private Fucntions -----------------------------*/
+/**
+ * @brief   Reallocates the internal buffer to a specific size in bytes.
+ *
+ * @param[in,out] self     The vector instance.
+ * @param[in]     new_cap  The new capacity in **bytes**.
+ * @return  0 on success.
+ * @reval   1 if memory allocation failed; the original buffer remains intact.
+ *
+ * @note This is a low-level memory management function. It directly wraps the
+ *       standard `realloc` and updates the internal pointers of the vector.
+ * 
+ * @note If @p new_cap is 0, the buffer is freed and all internal pointers
+ *       (@c beg, @c cav, @c end) are set to @p NULL.
+ *
+ * @warning Unlike @ref vec_grow, this function expects @p new_cap in
+ *          **bytes**, not element count. The caller is responsible for 
+ *          calculating `count * elem_sz`.
+ * @sa   vec_grow
+ */
 static inline
 int vec_realloc(struct vector *self, size_t new_cap)
 {
@@ -136,6 +165,7 @@ int vec_realloc(struct vector *self, size_t new_cap)
     {
       free(self->beg);
       self->beg = self->cav = self->end = NULL;
+      return 0;
     }
 
    new_beg = realloc(self->beg, new_cap);
@@ -148,6 +178,28 @@ int vec_realloc(struct vector *self, size_t new_cap)
 }
 
 
+/**
+ * @brief   Ensures the vector has enough capacity for at least @p size_min 
+ *          elements.
+ *
+ * @param[in,out] self     The vector instance to grow
+ * @param[in]     size_min The minimum # of elements to guarantee space for.
+ * @return     0 on success.
+ * @reval      non-0 Failure code returned by @ref vec_realloc if memory
+ *             allocation fails.
+ *
+ * @note This function uses an exponential growth strategy (doubling). This
+ *       ensures that $n$ insertions result in $O(1)$ amortized time
+ *       complexity.
+ *
+ * @attention  If @p size_min is less than the current capacity, the function
+ *             may still perform a reallocation depending on the internal state
+ *             of @ref vec_realloc.
+ *
+ * @warning This function does not check for integer overflow if
+ *          $size\_min \times elem\_size$ exceeds `SIZE_MAX`. Ensure
+ *          @p size_min is validated before calling this function.
+ */
 static inline
 int vec_grow(struct vector *self, size_t size_min)
 {
@@ -162,20 +214,44 @@ int vec_grow(struct vector *self, size_t size_min)
 }
 
 
+/**
+ * @brief   Reduces the vector's capacity when it is significantly underutilized.
+ *
+ * @param[in,out] self  The vector instance to shrink.
+ * @return     0 on success.
+ * @reval      non-0 Failure code returned by @ref vec_realloc if memory
+ *             reallocation fails.
+ *
+ * @note This function targets a capacity of 2x the current length (rounded up
+ *       to the next power of 2). This provides a balance between memory usage
+ *       and preventing frequent reallocations if elements are added again.
+ *
+ * @note If the vector is empty (length == 0), all internal memory is freed
+ *       and pointers are set to @p NULL.
+ *
+ * @attention This function will never increase the vector's capacity. If the
+ *             calculated target capacity is >= the current capacity, the
+ *             function returns 0 without modifying the vector.
+ *
+ * @sa vec_can_shrink
+ * @sa vec_grow
+ */
 static inline
 int vec_shrink(struct vector *self)
 {
-   size_t min_bytes = _vec_len_bytes(self),
-          actual_bytes = _vec_cap_bytes(self);
+   size_t min_bytes = _vec_len_bytes(self) * 2, new_cap;
 
-   while (actual_bytes / 4 >= min_bytes && actual_bytes)
-      actual_bytes /= 2;
+   if (min_bytes == 0) return vec_realloc(self, 0);
 
-   return vec_realloc(self, actual_bytes);
+   new_cap = (size_t)1 << (sizeof(size_t) * 8 - ds_clz(size_t, min_bytes - 1));
+   // Make sure it doesn't grow
+   if (new_cap >= _vec_cap_bytes(self)) return 0;
+
+   return vec_realloc(self, new_cap);
 }
 
 
 static inline
 _Bool vec_can_shrink(struct vector *self)
-{ return _vec_cap_bytes(self) / 4 >= _vec_len_bytes(self); }
+{ return  _vec_len_bytes(self) <= _vec_cap_bytes(self) / 4; }
 /*-------------------------- Private Fucntions END ---------------------------*/
