@@ -14,7 +14,7 @@ struct list_node_i
 };
 struct list_i
 {
-   struct list_node *head;
+   struct list_node_i *head;
    size_t size;
 };
 /*---------------------------- Public Strcut END -----------------------------*/
