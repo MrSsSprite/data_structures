@@ -35,7 +35,7 @@ List_i list_i_init(void) \
    self->head = NULL; \
    return self; \
 } \
-void list_i_destroy(struct list_i *self) \
+void list_i_deinit(struct list_i *self) \
 { \
    struct list_node_i *iter[2]; \
    int i = 0; \
