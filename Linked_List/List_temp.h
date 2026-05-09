@@ -7,11 +7,20 @@
 #include "../wrapper_fn/cstdlib.h"
 /*--------------------------- Public Includes END ----------------------------*/
 
-#define List_i__declare() \
-struct list_node_i; \
-struct list_i; \
-typedef struct list_i *List_i; \
-typedef struct list_node_i *List_Node_i; \
+#define List__i__declare() \
+typedef struct list__i *List__i; \
+typedef struct list_node__i *List_Node__i; \
+List__i list__i_init(void); \
+void list__i_deinit(struct list__i *self); \
+int list__i_push(struct list__i *self, int val); \
+void list__i_pop(struct list__i *self); \
+struct list_node__i **list__i_head(struct list__i *self); \
+size_t list__i_size(struct list__i *self); \
+int list__i_insert(struct list__i *self, struct list_node__i **pos, \
+                  const int *restrict first, size_t n); \
+void list__i_erase(struct list__i *self, struct list_node__i **pos, size_t n); \
+struct list_node__i **list__i_find \
+ (struct list_node__i **pos, int val, int(*cmp)(const void*, const void*)); \
 
 #define List__i__define() \
 struct list_node__i \
