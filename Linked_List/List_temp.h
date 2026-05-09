@@ -13,31 +13,31 @@ struct list_i; \
 typedef struct list_i *List_i; \
 typedef struct list_node_i *List_Node_i; \
 
-#define List_i__define() \
-struct list_node_i \
+#define List__i__define() \
+struct list_node__i \
 { \
-   struct list_node_i *next; \
+   struct list_node__i *next; \
    int value; \
 }; \
-struct list_i \
+struct list__i \
 { \
-   struct list_node_i *head; \
+   struct list_node__i *head; \
    size_t size; \
 }; \
-typedef struct list_i *List_i; \
-typedef struct list_node_i *List_Node_i; \
-List_i list_i_init(void) \
+typedef struct list__i *List__i; \
+typedef struct list_node__i *List_Node__i; \
+List__i list__i_init(void) \
 { \
-   struct list_i *self = malloc(sizeof(struct list_i)); \
+   struct list__i *self = malloc(sizeof(struct list__i)); \
    if (self == NULL) \
       return NULL; \
    self->size = 0; \
    self->head = NULL; \
    return self; \
 } \
-void list_i_deinit(struct list_i *self) \
+void list__i_deinit(struct list__i *self) \
 { \
-   struct list_node_i *iter[2]; \
+   struct list_node__i *iter[2]; \
    int i = 0; \
    if (self == NULL) return; \
    iter[i] = self->head; \
@@ -55,9 +55,9 @@ void list_i_deinit(struct list_i *self) \
  * @return  0 on success; non-0 otherwise
  * @retval  1  malloc failure
  */ \
-int list_i_push(struct list_i *self, int val) \
+int list__i_push(struct list__i *self, int val) \
 { \
-   struct list_node_i *new_node = malloc(sizeof(struct list_node_i)); \
+   struct list_node__i *new_node = malloc(sizeof(struct list_node__i)); \
    if (new_node == NULL) return 1; \
    new_node->next = self->head; \
    new_node->value = val; \
@@ -65,16 +65,16 @@ int list_i_push(struct list_i *self, int val) \
    self->size++; \
    return 0; \
 } \
-void list_i_pop(struct list_i *self) \
+void list__i_pop(struct list__i *self) \
 { \
-   struct list_node_i *det = self->head; \
+   struct list_node__i *det = self->head; \
    self->head = det->next; \
    self->size--; \
    free(det); \
 } \
-struct list_node_i **list_i_head(struct list_i *self) \
+struct list_node__i **list__i_head(struct list__i *self) \
 { return &self->head; } \
-size_t list_i_size(struct list_i *self) \
+size_t list__i_size(struct list__i *self) \
 { return self->size; } \
 /**
  * @brief   Insert node(s) into list
@@ -91,20 +91,20 @@ size_t list_i_size(struct list_i *self) \
  *
  * @note On error, list is returned back to the state before function call.
  */ \
-int list_i_insert(struct list_i *self, struct list_node_i **pos, \
+int list__i_insert(struct list__i *self, struct list_node__i **pos, \
                   const int *restrict first, size_t n) \
 { \
-   struct list_node_i **iter = pos; \
-   struct list_node_i *new_node, *orig_next = *iter; \
+   struct list_node__i **iter = pos; \
+   struct list_node__i *new_node, *orig_next = *iter; \
    for (const int *ed = first + n; \
         first < ed; first++, iter = &(*iter)->next) \
    { \
-      new_node = malloc(sizeof(struct list_node_i)); \
+      new_node = malloc(sizeof(struct list_node__i)); \
       *iter = new_node; \
       if (new_node == NULL) \
       { \
          /* remove every node after preceder but before orig_next */ \
-         struct list_node_i *err_iter; \
+         struct list_node__i *err_iter; \
          new_node = *pos; \
          while ((err_iter = new_node)) \
          { \
@@ -120,9 +120,9 @@ int list_i_insert(struct list_i *self, struct list_node_i **pos, \
    self->size += n; \
    return 0; \
 } \
-void list_i_erase(struct list_i *self, struct list_node_i **pos, size_t n) \
+void list__i_erase(struct list__i *self, struct list_node__i **pos, size_t n) \
 { \
-   struct list_node_i *del_node = *pos, *next_node; \
+   struct list_node__i *del_node = *pos, *next_node; \
    for (size_t i = 0; i < n; i++) \
    { \
       next_node = del_node->next; \
@@ -147,9 +147,8 @@ void list_i_erase(struct list_i *self, struct list_node_i **pos, size_t n) \
  * @return  position indicator indicating the first matching node on success.
  * @retval  NULL  Not Found
  */ \
-struct list_node_i **list_i_find \
- (struct list_i *this, struct list_node_i **pos, int val, \
-  int(*cmp)(const void*, const void*)) \
+struct list_node__i **list__i_find \
+ (struct list_node__i **pos, int val, int(*cmp)(const void*, const void*)) \
 { \
    if (cmp == NULL) \
    { \
