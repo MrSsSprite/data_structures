@@ -91,8 +91,8 @@ size_t list_i_size(struct list_i *self) \
  *
  * @note On error, list is returned back to the state before function call.
  */ \
-int list_i_insert (struct list_i *self, struct list_node_i **pos, \
-                   const int *restrict first, size_t n) \
+int list_i_insert(struct list_i *self, struct list_node_i **pos, \
+                  const int *restrict first, size_t n) \
 { \
    struct list_node_i **iter = pos; \
    struct list_node_i *new_node, *orig_next = *iter; \
@@ -149,7 +149,7 @@ void list_i_erase(struct list_i *self, struct list_node_i **pos, size_t n) \
  */ \
 struct list_node_i **list_i_find \
  (struct list_i *this, struct list_node_i **pos, int val, \
- int(*cmp)(const void*, const void*)) \
+  int(*cmp)(const void*, const void*)) \
 { \
    if (cmp == NULL) \
    { \
