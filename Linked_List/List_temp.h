@@ -8,6 +8,11 @@
 /*--------------------------- Public Includes END ----------------------------*/
 
 #define List__i__declare() \
+struct list_node__i \
+{ \
+   struct list_node__i *next; \
+   int value; \
+}; \
 typedef struct list__i *List__i; \
 typedef struct list_node__i *List_Node__i; \
 List__i list__i_init(void); \
