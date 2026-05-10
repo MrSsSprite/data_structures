@@ -28,6 +28,7 @@ struct list_node__i **list__i_find \
  (struct list_node__i **pos, int val, int(*cmp)(const void*, const void*)); \
 
 #define List__i__define() \
+struct list_node__i; \
 struct list_node__i \
 { \
    struct list_node__i *next; \
