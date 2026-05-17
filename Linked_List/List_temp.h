@@ -13,8 +13,8 @@ struct list_node__##S \
    struct list_node__##S *next; \
    T value; \
 }; \
-typedef struct list__##S *List__##S##; \
-typedef struct list_node__##S *List_Node__##S##; \
+typedef struct list__##S *List__##S; \
+typedef struct list_node__##S *List_Node__##S; \
 List__##S list__##S##_init(void); \
 void list__##S##_deinit(struct list__##S *self); \
 int list__##S##_push(struct list__##S *self, T val); \
@@ -28,7 +28,7 @@ struct list_node__##S **list__##S##_find \
  (struct list_node__##S **pos, T val, T(*cmp)(const void*, const void*)); \
 
 #define List__define(T, S) \
-struct list_node__##S##; \
+struct list_node__##S; \
 struct list_node__##S \
 { \
    struct list_node__##S *next; \
@@ -39,11 +39,11 @@ struct list__##S \
    struct list_node__##S *head; \
    size_t size; \
 }; \
-typedef struct list__##S *List__##S##; \
-typedef struct list_node__##S *List_Node__##S##; \
+typedef struct list__##S *List__##S; \
+typedef struct list_node__##S *List_Node__##S; \
 List__##S list__##S##_init(void) \
 { \
-   struct list__##S *self = malloc(sizeof(struct list__##S##)); \
+   struct list__##S *self = malloc(sizeof(struct list__##S)); \
    if (self == NULL) \
       return NULL; \
    self->size = 0; \
@@ -72,7 +72,7 @@ void list__##S##_deinit(struct list__##S *self) \
  */ \
 int list__##S##_push(struct list__##S *self, T val) \
 { \
-   struct list_node__##S *new_node = malloc(sizeof(struct list_node__##S##)); \
+   struct list_node__##S *new_node = malloc(sizeof(struct list_node__##S)); \
    if (new_node == NULL) return 1; \
    new_node->next = self->head; \
    new_node->value = val; \
@@ -114,7 +114,7 @@ int list__##S##_insert(struct list__##S *self, struct list_node__##S **pos, \
    for (const T *ed = first + n; \
         first < ed; first++, iter = &(*iter)->next) \
    { \
-      new_node = malloc(sizeof(struct list_node__##S##)); \
+      new_node = malloc(sizeof(struct list_node__##S)); \
       *iter = new_node; \
       if (new_node == NULL) \
       { \
