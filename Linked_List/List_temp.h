@@ -53,7 +53,7 @@ List__##S list__##S##_init(void) \
 void list__##S##_deinit(struct list__##S *self) \
 { \
    struct list_node__##S *iter[2]; \
-   T i = 0; \
+   uint_fast8_t i = 0; \
    if (self == NULL) return; \
    iter[i] = self->head; \
    while (iter[i]) \
