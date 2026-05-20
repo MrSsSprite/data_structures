@@ -26,7 +26,7 @@ int list__##S##_insert(struct list__##S *self, struct list_node__##S **pos, \
                   const T *restrict first, size_t n); \
 void list__##S##_erase(struct list__##S *self, struct list_node__##S **pos, size_t n); \
 struct list_node__##S **list__##S##_find \
- (struct list_node__##S **pos, T val, T(*cmp)(const void*, const void*)); \
+ (struct list_node__##S **pos, T val, int(*cmp)(const void*, const void*)); \
 
 #define List__define(T, S) \
 struct list_node__##S; \
