@@ -4,6 +4,7 @@
 /*----------------------------- Public Includes ------------------------------*/
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "../wrapper_fn/cstdlib.h"
 /*--------------------------- Public Includes END ----------------------------*/
 
