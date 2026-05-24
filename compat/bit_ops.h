@@ -3,49 +3,36 @@
 
 #include <stddef.h>
 
-static inline
-int ds_clz_size_t(size_t x)
-{
-#if defined(__GNUC__) || defined(__clang__)
-   if (sizeof(size_t) == sizeof(unsigned long))
-      return __builtin_clzl((unsigned long)x);
-   if (sizeof(size_t) == sizeof(unsigned long long))
-      return __builtin_clzll((unsigned long long)x);
-   if (sizeof(size_t) == sizeof(unsigned int))
-      return __builtin_clz((unsigned int)x);
-#else
-   int count = 0, total_bits = sizeof(size_t) * 8;
-   for (int i = total_bits - 1; i; i--)
-    {
-      if ((x >> i) & 1) break;
-      count++;
-    }
-   return count;
-#endif
-}
-
-#define DEFINE_DS_CLZ(T) \
-   static inline int ds_clz_##T ( T x) \
-   {
-
-
 /*------------------------ CLZ (Count Leading Zeros) -------------------------*/
 #if defined(__GNUC__) || defined(__clang__)
-   #define ds_clz(T, x) \
-      ((sizeof(T) == sizeof(unsigned long)) ? \
-         __builtin_clzl((unsigned long)(x)) : \
-       (sizeof(T) == sizeof(unsigned long long)) ? \
-         __builtin_clzll((unsigned long long)(x)) : \
-         __builtin_clz((unsigned int)(x)))
+#define ds_clz(x) _Generic((x), \
+    unsigned char:      __builtin_clz(x) - (int)((sizeof(unsigned int) - sizeof(unsigned char)) * 8), \
+    signed char:        __builtin_clz((unsigned char)(x)) - (int)((sizeof(unsigned int) - sizeof(char)) * 8), \
+    unsigned short:     __builtin_clz(x) - (int)((sizeof(unsigned int) - sizeof(unsigned short)) * 8), \
+    short:              __builtin_clz((unsigned short)(x)) - (int)((sizeof(unsigned int) - sizeof(short)) * 8), \
+    unsigned int:       __builtin_clz(x), \
+    int:                __builtin_clz((unsigned int)(x)), \
+    unsigned long:      __builtin_clzl(x), \
+    long:               __builtin_clzl((unsigned long)(x)), \
+    unsigned long long: __builtin_clzll(x), \
+    long long:          __builtin_clzll((unsigned long long)(x)), \
+    default:            ds_clz_fallback((unsigned long long)(x), sizeof(x)) \
+)
 #else
-   #define ds_clz(T, x) ds_clz_fallback(x, sizeof(T))
+#define ds_clz(x) ds_clz_fallback((unsigned long long)(x), sizeof(x))
 #endif
 
+// Fallback function with fixed loop boundaries
 static inline int ds_clz_fallback(unsigned long long x, size_t type_size)
 {
-   int cnt, i;
-   for (i = type_size * 8 - 1, cnt = 0; i; i--, cnt++)
+   int total_bits = type_size * 8;
+   if (x == 0) return total_bits;
+
+   int cnt = 0;
+   for (int i = total_bits - 1; i >= 0; i--) {
       if ((x >> i) & 1) break;
+      cnt++;
+   }
    return cnt;
 }
 /*---------------------- CLZ (Count Leading Zeros) END -----------------------*/
